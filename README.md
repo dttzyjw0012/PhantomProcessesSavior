@@ -4,7 +4,7 @@ It's a xposed module. It can solve the problem that android 12 often kills subpr
 
 require:  
 Magisk  
-Lsposed  
+LSPosed  
 需求框架：  
 Magisk  
-Lsposed  
+LSPosed  
