@@ -2,17 +2,19 @@ package com.yhc.phantom.processes.savior;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
 public class Savior implements IXposedHookLoadPackage {
     private static final String TAG = "Savior:";
-    private static final String CLASS_PHANTOM_PROCESS_RECORD =
-            "com.android.server.am.PhantomProcessRecord";
-    private static final boolean DEBUG = true;
-    private static Class<?> mPhantomProcessRecordClass;
+    private static final String CLASS_PHANTOM_PROCESS_LIST =
+            "com.android.server.am.PhantomProcessList";
+    private static final String CLASS_PROCESS_CPU_TRACKER =
+            "com.android.internal.os.ProcessCpuTracker";
+    
+    private static final boolean DEBUG = false;
+    private static Class<?> mPhantomProcessListClass;
 
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) {
@@ -30,30 +32,58 @@ public class Savior implements IXposedHookLoadPackage {
 
     public static void initAndroid(final ClassLoader classLoader) {
         try {
-            mPhantomProcessRecordClass = XposedHelpers.findClass(CLASS_PHANTOM_PROCESS_RECORD,
+            mPhantomProcessListClass = XposedHelpers.findClass(CLASS_PHANTOM_PROCESS_LIST,
                     classLoader);
 
-            XposedHelpers.findAndHookMethod(mPhantomProcessRecordClass, "killLocked",
-                    String.class, "boolean",
-                    phantomProcessRecordKillLockedHook);
+            XposedHelpers.findAndHookMethod(mPhantomProcessListClass,
+                    "updateProcessCpuStatesLocked",
+                    CLASS_PROCESS_CPU_TRACKER,
+                    phantomProcessListClassUpdateProcessCpuStatesLockedHook);
+            XposedHelpers.findAndHookMethod(mPhantomProcessListClass,
+                    "trimPhantomProcessesIfNecessary",
+                    phantomProcessListClassTrimPhantomProcessesIfNecessaryHook);
         } catch (Throwable t) {
             log(TAG, t);
         }
     }
 
-    private static XC_MethodHook phantomProcessRecordKillLockedHook =
-            new XC_MethodReplacement() {
+    private static XC_MethodHook phantomProcessListClassUpdateProcessCpuStatesLockedHook =
+            new XC_MethodHook() {
                 @Override
-                protected Object replaceHookedMethod(MethodHookParam methodHookParam)
-                        throws Throwable {
-                    if (DEBUG) logInner("phantomProcessRecordListKillLockedHook start initialized");
-                    try {
-                        if (DEBUG) logInner("phantomProcessRecordListKillLockedHook Hooked!");
-                        return null;
-                    } catch (Throwable t) {
-                        if (DEBUG) logInner("phantomProcessRecordListKillLockedHook initialized");
-                        return null;
-                    }
+                protected void beforeHookedMethod(final MethodHookParam param) {
+                    if (DEBUG)
+                        logInner(
+                                "phantomProcessListClassUpdateProcessCpuStatesLockedHook start " +
+                                        "initialized"
+                        );
+
+                    param.setResult(null);
+
+                    if (DEBUG)
+                        logInner(
+                                "phantomProcessListClassUpdateProcessCpuStatesLockedHook " +
+                                        "Hooked!"
+                        );
+                }
+            };
+
+    private static XC_MethodHook phantomProcessListClassTrimPhantomProcessesIfNecessaryHook =
+            new XC_MethodHook() {
+                @Override
+                protected void beforeHookedMethod(final MethodHookParam param) {
+                    if (DEBUG)
+                        logInner(
+                                "phantomProcessListClassTrimPhantomProcessesIfNecessaryHook" +
+                                        " start initialized"
+                        );
+
+                    param.setResult(null);
+
+                    if (DEBUG)
+                        logInner(
+                                "phantomProcessListClassTrimPhantomProcessesIfNecessaryHook " +
+                                        "initialized"
+                        );
                 }
             };
 
