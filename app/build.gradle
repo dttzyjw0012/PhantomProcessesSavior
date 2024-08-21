@@ -29,5 +29,6 @@ android {
 }
 
 dependencies {
-    compileOnly 'de.robv.android.xposed:api:82'
+    compileOnly files("libs/xposed/api-82.jar")
+    compileOnly files("libs/xposed/api-82-sources.jar")
 }
